@@ -155,6 +155,7 @@ class ConvNetBuilder(object):
            bias=0.0,
            kernel_initializer=None):
     """Construct a conv2d layer on top of cnn."""
+    kernel_initializer = tf.contrib.layers.xavier_initializer()
     if input_layer is None:
       input_layer = self.top_layer
     if num_channels_in is None:
@@ -311,7 +312,8 @@ class ConvNetBuilder(object):
       kernel = self.get_variable(
           'weights', [num_channels_in, num_out_channels],
           self.variable_dtype, self.dtype,
-          initializer=tf.truncated_normal_initializer(stddev=stddev))
+          initializer=tf.contrib.layers.xavier_initializer())
+          # initializer=tf.truncated_normal_initializer(stddev=stddev))
       biases = self.get_variable('biases', [num_out_channels],
                                  self.variable_dtype, self.dtype,
                                  initializer=tf.constant_initializer(bias))
