@@ -270,6 +270,37 @@ def eval_image(image,
   return image
 
 
+def train_image_new(image_buffer,
+                height,
+                width,
+                bbox,
+                batch_position,
+                resize_method,
+                distortions,
+                scope=None,
+                summary_verbosity=0,
+                distort_color_in_yiq=False,
+                fuse_decode_and_crop=False):
+    image = tf.image.decode_jpeg(image_buffer, channels=3)
+    image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+    image_resize_method = get_image_resize_method(resize_method, batch_position)
+    image = tf.image.resize_images(
+        image, [height, width],
+        image_resize_method,
+        align_corners=False)
+    image.set_shape([height, width, 3])
+
+    _R_MEAN = 123.68
+    _G_MEAN = 116.78
+    _B_MEAN = 103.94
+    _CHANNEL_MEANS = [_R_MEAN, _G_MEAN, _B_MEAN]
+
+    means = tf.broadcast_to(_CHANNEL_MEANS, tf.shape(image))
+    image = image - means
+    image /= 255.
+    return image
+
+
 def train_image(image_buffer,
                 height,
                 width,
@@ -703,7 +734,13 @@ class RecordInputImagePreprocessor(BaseImagePreprocessor):
   def preprocess(self, image_buffer, bbox, batch_position):
     """Preprocessing image_buffer as a function of its batch position."""
     if self.train:
-      image = train_image(image_buffer, self.height, self.width, bbox,
+      # image = train_image(image_buffer, self.height, self.width, bbox,
+                          # batch_position, self.resize_method, self.distortions,
+                          # None, summary_verbosity=self.summary_verbosity,
+                          # distort_color_in_yiq=self.distort_color_in_yiq,
+                          # fuse_decode_and_crop=self.fuse_decode_and_crop)
+
+      image = train_image_new(image_buffer, self.height, self.width, bbox,
                           batch_position, self.resize_method, self.distortions,
                           None, summary_verbosity=self.summary_verbosity,
                           distort_color_in_yiq=self.distort_color_in_yiq,
